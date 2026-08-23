@@ -1,6 +1,6 @@
 workflows:
   android-workflow:
-    name: Haryana GK AAB
+    name: Haryana GK APK
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
@@ -8,19 +8,11 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Create Android folder
+      - name: Build APK and AAB
         script: |
-          cp lib/main.dart /tmp/my_main.dart
-          flutter create . --platforms android --project-name haryana_gk_quiz
-          cp /tmp/my_main.dart lib/main.dart
-      - name: Build AAB
-        script: |
+          flutter pub get
+          flutter build apk --release
           flutter build appbundle --release
-          flutter build apk  --release
     artifacts:
-      - build/**/outputs/**/*.aab
-      - build/**/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - dramandhillon720@gmail.com
+      - build/app/outputs/flutter-apk/*.apk
+      - build/app/outputs/bundle/release/*.aab
