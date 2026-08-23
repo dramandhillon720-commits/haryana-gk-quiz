@@ -104,6 +104,16 @@ class _QuizScreenState extends State<QuizScreen> {
           var questions = snap.data!.docs;
           if (questions.isEmpty) return Center(child: Text("No Questions Added Yet"));
           var q = questions[currentIndex];
+  var opts = [q['option1'], q['option2'], q['option3'], q['option4']];
+  return Column(children: [
+    LinearProgressIndicator(value: (currentIndex+1)/questions.length),
+    Padding(padding: EdgeInsets.all(16), child: Text(q['question']?? '', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+   ...List.generate(4, (i) => Card(child: ListTile(title: Text(opts[i]?? ''), onTap: () {
+      if (opts[i] == q['correctAnswer']) score++;
+      if ((currentIndex+1) % 4 == 0) interstitialAd?.show();
+      if (currentIndex < questions.length-1) setState(() => currentIndex++); else showDialog(context: context, builder: (_) => AlertDialog(title: Text("Score: $score/${questions.length}"), actions: [TextButton(onPressed: () => Navigator.popUntil(context, (r) => r.isFirst), child: Text("OK"))]));
+    }))),
+  ]);
           return Column(children: [
             LinearProgressIndicator(value: (currentIndex+1)/questions.length),
             Padding(padding: EdgeInsets.all(16), child: Text(q['question'], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
