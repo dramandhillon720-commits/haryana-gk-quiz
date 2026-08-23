@@ -2,13 +2,17 @@ pluginManagement {
     def flutterSdkPath = {
         def properties = new Properties()
         file("local.properties").withInputStream { properties.load(it) }
-        def flutterSdkPath = properties.getProperty("flutter.sdk")
-        assert flutterSdkPath != null, "flutter.sdk not set"
-        return flutterSdkPath
-    }()
-    settings.ext.flutterSdkPath = flutterSdkPath()
+        def sdkPath = properties.getProperty("flutter.sdk")
+        assert sdkPath != null, "flutter.sdk not set"
+        return sdkPath
+    }
+    settings.ext.flutterSdkPath = flutterSdkPath.call()
     includeBuild("${settings.ext.flutterSdkPath}/packages/flutter_tools/gradle")
-    repositories { google(); mavenCentral(); gradlePluginPortal() }
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
