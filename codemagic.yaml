@@ -10,10 +10,16 @@ workflows:
     scripts:
       - name: Create Android folder
         script: |
-          flutter create . --platforms=android
+          cp lib/main.dart /tmp/my_main.dart
+          flutter create . --platforms android --project-name haryana_gk_quiz
+          cp /tmp/my_main.dart lib/main.dart
       - name: Build AAB
         script: |
           flutter build appbundle --release
     artifacts:
       - build/**/outputs/**/*.aab
-      - build/**/outputs/**/app-release.aab
+      - build/**/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - dramandhillon720@gmail.com
