@@ -1,128 +1,119 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-
-const String bannerAdId = 'ca-app-pub-2827494424235072/9251633542';
-const String interstitialAdId = 'ca-app-pub-2827494424235072/1580640700';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await MobileAds.instance.initialize();
-  runApp(HaryanaGKApp());
+  runApp(MyApp());
 }
 
-class HaryanaGKApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Haryana GK Quiz',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: QuizScreen(),
+    return MaterialApp(title: 'HSSC MCQ Quiz', theme: ThemeData(primarySwatch: Colors.blue), home: SubjectScreen());
+  }
+}
+
+// 1. SUBJECT SCREEN
+class SubjectScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Subjects"), centerTitle: true),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('subjects').snapshots(),
+        builder: (c, snap) {
+          if (!snap.hasData) return Center(child: CircularProgressIndicator());
+          return ListView(children: snap.data!.docs.map((doc) => Card(child: ListTile(title: Text(doc['name']), trailing: Icon(Icons.arrow_forward), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => TopicScreen(subjectId: doc.id, subjectName: doc['name'])))))).toList());
+        },
+      ),
     );
   }
 }
 
+// 2. TOPIC SCREEN
+class TopicScreen extends StatelessWidget {
+  final String subjectId, subjectName;
+  TopicScreen({required this.subjectId, required this.subjectName});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(subjectName)),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('subjects').doc(subjectId).collection('topics').snapshots(),
+        builder: (c, snap) {
+          if (!snap.hasData) return Center(child: CircularProgressIndicator());
+          return ListView(children: snap.data!.docs.map((doc) => Card(child: ListTile(title: Text(doc['name']), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => TestListScreen(subjectId: subjectId, topicId: doc.id, topicName: doc['name'])))))).toList());
+        },
+      ),
+    );
+  }
+}
+
+// 3. TEST LIST SCREEN
+class TestListScreen extends StatelessWidget {
+  final String subjectId, topicId, topicName;
+  TestListScreen({required this.subjectId, required this.topicId, required this.topicName});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(topicName)),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('subjects').doc(subjectId).collection('topics').doc(topicId).collection('tests').snapshots(),
+        builder: (c, snap) {
+          if (!snap.hasData) return Center(child: CircularProgressIndicator());
+          return ListView(children: snap.data!.docs.map((doc) => Card(child: ListTile(title: Text(doc['name']), subtitle: Text("${doc['questionCount'] ?? 0} Questions"), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => QuizScreen(subjectId: subjectId, topicId: topicId, testId: doc.id)))))).toList());
+        },
+      ),
+    );
+  }
+}
+
+// 4. QUIZ SCREEN WITH ADS
 class QuizScreen extends StatefulWidget {
+  final String subjectId, topicId, testId;
+  QuizScreen({required this.subjectId, required this.topicId, required this.testId});
   @override
   _QuizScreenState createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  int qIndex = 0;
-  int score = 0;
-  int _qCountForAd = 0;
-
-  BannerAd? _bannerAd;
-  InterstitialAd? _interstitialAd;
-
-  List<Map<String, dynamic>> questions = [
-    {
-      "q": "Haryana ka gathan kab hua tha?",
-      "options": ["1 Nov 1966", "15 Aug 1947", "26 Jan 1950", "1 Nov 1956"],
-      "ans": 0
-    },
-    {
-      "q": "Haryana ki rajdhani kya hai?",
-      "options": ["Chandigarh", "Hisar", "Rohtak", "Gurgaon"],
-      "ans": 0
-    },
-    // Yaha tere baaki ke saare questions automatic aa jayenge, tu bas isi list me add karta rehna
-  ];
+  int currentIndex = 0, score = 0;
+  BannerAd? bannerAd;
+  InterstitialAd? interstitialAd;
 
   @override
   void initState() {
     super.initState();
-    _loadBanner();
-    _loadInterstitial();
-  }
-
-  void _loadBanner() {
-    _bannerAd = BannerAd(
-      adUnitId: bannerAdId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdFailedToLoad: (ad, error) { ad.dispose(); },
-      ),
-    )..load();
-  }
-
-  void _loadInterstitial() {
-    InterstitialAd.load(
-      adUnitId: interstitialAdId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitialAd = ad,
-        onAdFailedToLoad: (error) => _interstitialAd = null,
-      ),
-    );
-  }
-
-  void _nextQuestion(int selected) {
-    if (selected == questions[qIndex]['ans']) score++;
-    _qCountForAd++;
-
-    if (_qCountForAd % 4 == 0) {
-      _interstitialAd?.show();
-      _loadInterstitial();
-    }
-
-    if (qIndex < questions.length - 1) {
-      setState(() { qIndex++; });
-    } else {
-      showDialog(context: context, builder: (_) => AlertDialog(
-        title: Text("Quiz Khatam!"),
-        content: Text("Tera Score: $score / ${questions.length}"),
-        actions: [TextButton(onPressed: (){ setState((){ qIndex=0; score=0; }); Navigator.pop(context); }, child: Text("Restart"))],
-      ));
-    }
+    bannerAd = BannerAd(adUnitId: 'ca-app-pub-2827563304186980/1234567890', size: AdSize.banner, request: AdRequest(), listener: BannerAdListener())..load();
+    InterstitialAd.load(adUnitId: 'ca-app-pub-2827563304186980/0987654321', request: AdRequest(), adLoadCallback: InterstitialAdLoadCallback(onAdLoaded: (ad) => interstitialAd = ad, onAdFailedToLoad: (e) => print(e)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Haryana GK Quiz")),
-      bottomNavigationBar: _bannerAd!= null? Container(height: 50, child: AdWidget(ad: _bannerAd!)) : null,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(questions[qIndex]['q'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-           ...List.generate(questions[qIndex]['options'].length, (i) {
-              return Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(bottom: 10),
-                child: ElevatedButton(
-                  onPressed: () => _nextQuestion(i),
-                  child: Text(questions[qIndex]['options'][i]),
-                ),
-              );
-            }),
-          ],
-        ),
+      appBar: AppBar(title: Text("Quiz")),
+      bottomNavigationBar: bannerAd != null ? Container(height: 50, child: AdWidget(ad: bannerAd!)) : null,
+      body: FutureBuilder<QuerySnapshot>(
+        future: FirebaseFirestore.instance.collection('subjects').doc(widget.subjectId).collection('topics').doc(widget.topicId).collection('tests').doc(widget.testId).collection('questions').get(),
+        builder: (c, snap) {
+          if (!snap.hasData) return Center(child: CircularProgressIndicator());
+          var questions = snap.data!.docs;
+          if (questions.isEmpty) return Center(child: Text("No Questions Added Yet"));
+          var q = questions[currentIndex];
+          return Column(children: [
+            LinearProgressIndicator(value: (currentIndex+1)/questions.length),
+            Padding(padding: EdgeInsets.all(16), child: Text(q['question'], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            ...List.generate(4, (i) => Card(child: ListTile(title: Text(q['options'][i]), onTap: () {
+              if (q['options'][i] == q['answer']) score++;
+              if ((currentIndex+1) % 4 == 0) interstitialAd?.show();
+              if (currentIndex < questions.length-1) setState(() => currentIndex++); else showDialog(context: c, builder: (_) => AlertDialog(title: Text("Score: $score/${questions.length}"), actions: [TextButton(onPressed: () => Navigator.popUntil(c, (r) => r.isFirst), child: Text("OK"))]));
+            }))),
+          ]);
+        },
       ),
     );
   }
