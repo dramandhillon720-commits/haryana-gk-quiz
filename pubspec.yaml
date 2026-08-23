@@ -1,5 +1,5 @@
 name: haryana_gk_quiz
-description: Haryana GK Quiz App for HSSC
+description: Haryana GK Quiz App for HSSC CET.
 publish_to: 'none'
 version: 1.0.0+1
 environment:
@@ -12,8 +12,7 @@ dependencies:
   cloud_firestore: ^4.15.5
   google_mobile_ads: ^4.0.0
   shared_preferences: ^2.2.2
-flutter:
-  uses-material-design: true
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
