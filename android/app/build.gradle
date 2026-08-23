@@ -10,14 +10,14 @@ def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 android {
     namespace "com.example.haryana_gk_quiz"
-    compileSdk 35
+    compileSdk 36
     ndkVersion flutter.ndkVersion
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
     kotlinOptions { jvmTarget = '1.8' }
     defaultConfig {
         applicationId "com.example.haryana_gk_quiz"
         minSdkVersion 21
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
