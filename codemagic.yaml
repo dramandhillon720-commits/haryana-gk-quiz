@@ -7,22 +7,20 @@ workflows:
       flutter: 3.35.4
       java: 17
     scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Add AdMob ID to Manifest
+      - name: Fix Everything and Build
         script: |
+          # 1. google-services.json backup
+          cp android/app/google-services.json /tmp/google-services.json 2>/dev/null || echo "backing up"
+          # 2. purana kharab android folder delete
+          rm -rf android
+          # 3. naya android folder tumhare package name ke saath
+          flutter create . --platforms=android --org com.hssc --project-name mcq
+          # 4. json wapas restore
+          cp /tmp/google-services.json android/app/google-services.json
+          # 5. Real AdMob ID add
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          # Check if AdMob ID already there
-          if grep -q "com.google.android.gms.ads.APPLICATION_ID" $MANIFEST; then
-            echo "AdMob ID already exists"
-            # Replace with your real ID
-            sed -i '' 's/ca-app-pub-[0-9]*~[0-9]*/ca-app-pub-2827494424235072~8673663489/g' $MANIFEST 2>/dev/null || sed -i 's/ca-app-pub-[0-9]*~[0-9]*/ca-app-pub-2827494424235072~8673663489/g' $MANIFEST
-          else
-            echo "Adding Real AdMob ID"
-            perl -i -pe 'BEGIN{undef $/;} s/<application[^>]*>/\0\n    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2827494424235072~8673663489"\/>/' $MANIFEST
-          fi
-          cat $MANIFEST | grep -A2 -B2 "APPLICATION_ID"
-      - name: Build APK
-        script: flutter build apk --release --no-tree-shake-icons
+          perl -i -pe 'BEGIN{undef $/;} s/<application[^>]*>/\0\n    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2827494424235072~8673663489"\/>/' $MANIFEST
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
     artifacts:
       - build/**/outputs/**/*.apk
