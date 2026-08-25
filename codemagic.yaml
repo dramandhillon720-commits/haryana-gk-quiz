@@ -1,3 +1,4 @@
+
 workflows:
   android-workflow:
     name: Haryana GK Quiz Android
@@ -9,14 +10,14 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Fix Android folder permanently
+      - name: Fix Android folder and Add Real AdMob ID
         script: |
-          echo "Deleting old android folder..."
           rm -rf android
-          echo "Creating new android folder..."
           flutter create . --platforms=android
           flutter pub get
-          echo "Android folder fixed!"
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          perl -i -pe 'BEGIN{undef $/;} s/<application[^>]*>/\0\n    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2827494424235072~8673663489"\/>/' $MANIFEST
+          echo "Manifest Fixed with Real ID"
       - name: Build APK
         script: flutter build apk --release --no-tree-shake-icons
     artifacts:
