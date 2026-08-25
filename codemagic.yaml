@@ -1,4 +1,3 @@
-
 workflows:
   android-workflow:
     name: Haryana GK Quiz Android
@@ -10,6 +9,11 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Fix Android folder
+        script: |
+          rm -rf android
+          flutter create . --platforms=android
+          flutter pub get
       - name: Build APK
         script: flutter build apk --release --no-tree-shake-icons
     artifacts:
