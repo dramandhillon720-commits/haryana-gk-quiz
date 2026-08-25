@@ -4,16 +4,19 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
-      flutter: 3.27.1
+      flutter: 3.35.4
       java: 17
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Fix Android folder
+      - name: Fix Android folder permanently
         script: |
+          echo "Deleting old android folder..."
           rm -rf android
+          echo "Creating new android folder..."
           flutter create . --platforms=android
           flutter pub get
+          echo "Android folder fixed!"
       - name: Build APK
         script: flutter build apk --release --no-tree-shake-icons
     artifacts:
