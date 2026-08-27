@@ -5,10 +5,11 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       flutter: stable
-      xcode: latest
-      cocoapods: default
     scripts:
-      - name: Get Flutter packages
+      - name: Fix missing Android folder
+        script: |
+          flutter create . --platforms=android --org com.haryanagk.quiz --project-name haryana_gk_quiz
+      - name: Get packages
         script: |
           flutter packages pub get
       - name: Build APK
@@ -16,8 +17,3 @@ workflows:
           flutter build apk --release
     artifacts:
       - build/**/outputs/**/*.apk
-      - build/**/outputs/**/mapping.txt
-    publishing:
-      email:
-        recipients:
-          - your-email@gmail.com
