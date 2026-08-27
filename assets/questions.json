@@ -1,0 +1,25 @@
+{
+  "subtopics": [
+    {
+      "id": 1,
+      "name": "Haryana History",
+      "tests": [
+        {
+          "test_no": 1,
+          "questions": [
+            {
+              "question": "Haryana ka gathan kab hua tha?",
+              "options": ["1 Nov 1966", "1 Nov 1965", "15 Aug 1947", "26 Jan 1950"],
+              "answer": "1 Nov 1966"
+            },
+            {
+              "question": "Haryana ki rajdhani kya hai?",
+              "options": ["Chandigarh", "Gurugram", "Panipat", "Hisar"],
+              "answer": "Chandigarh"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
