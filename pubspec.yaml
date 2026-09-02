@@ -1,16 +1,11 @@
 name: haryana_gk_quiz
-description: Haryana GK Quiz App
+description: Haryana GK - Subject wise Quiz
 publish_to: 'none'
 version: 1.0.0+1
-
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-
+  sdk: '>=3.0.0 <4.0.0'
 dependencies:
   flutter:
     sdk: flutter
-
 flutter:
   uses-material-design: true
-  assets:
-    - assets/questions.json
