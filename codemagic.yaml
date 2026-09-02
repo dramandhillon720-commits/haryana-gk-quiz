@@ -1,19 +1,27 @@
 workflows:
-  android-apk:
-    name: Haryana GK APK
-    max_build_duration: 60
+  quiz-aab:
+    name: Quiz AAB Build
     instance_type: mac_mini_m2
     environment:
       flutter: stable
     scripts:
-      - name: Fix missing Android folder
+      - name: Generate Android folder
         script: |
-          flutter create . --platforms=android --org com.haryanagk.quiz --project-name haryana_gk_quiz
+          flutter create. --project-name haryana_gk_quiz --org com.haryanagk --platforms android
+          rm -rf lib/main.dart
+          mkdir -p lib/screens
+      - name: Create Files from GitHub
+        script: |
+          cat > lib/main.dart <<'EOF'
+          import 'package:flutter/material.dart';
+          import 'screens/subjects_screen.dart';
+          void main() => runApp(const MyApp());
+          class MyApp extends StatelessWidget { const MyApp({super.key}); @override Widget build(BuildContext context) { return MaterialApp(debugShowCheckedModeBanner: false, home: SubjectsScreen()); } }
+          EOF
+          # Baaki screens already GitHub me hongi, yahan restore hongi
       - name: Get packages
-        script: |
-          flutter packages pub get
-      - name: Build APK
-        script: |
-          flutter build apk --release
+        script: flutter pub get
+      - name: Build AAB
+        script: flutter build appbundle --release --no-tree-shake-icons
     artifacts:
-      - build/**/outputs/**/*.apk
+      - build/app/outputs/bundle/release/*.aab
